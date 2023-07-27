@@ -20,7 +20,6 @@ import java.util.List;
 @Configuration
 public class IpBlockWhoIsChecker {
 
-    @Autowired
     private IpBlockWhoIsRepository ipBlockWhoIsRepository;
     private OptimBotService optimBotService;
     private String providerCode = "";
