@@ -1,34 +1,41 @@
 package com.iptvrest.utils;
 
-import com.iptvrest.entity.IpBlock;
 import com.iptvrest.entity.IpBlockWhoIs;
-import com.iptvrest.repository.IpBlockRepository;
 import com.iptvrest.repository.IpBlockWhoIsRepository;
+import com.iptvrest.service.OptimBotService;
 import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddressString;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Getter
-public class IpBlockChecker {
+@Configuration
+public class IpBlockWhoIsChecker {
 
-    private final List<IpBlock> ipBlockList;
-    private final String ipAddress;
-    private String providerCode;
+    @Autowired
+    private IpBlockWhoIsRepository ipBlockWhoIsRepository;
+    private OptimBotService optimBotService;
+    private String providerCode = "";
 
-    public IpBlockChecker(List<IpBlock> ipBlockList, String ipAddress) {
-        this.ipBlockList = ipBlockList;
-        this.ipAddress = ipAddress;
-        this.providerCode = "";
+    public IpBlockWhoIsChecker() {
+        checkIpBlock();
     }
 
 
-    private void checkIpBlock(List<IpBlock> ipBlockList) {
-        for (IpBlock block:ipBlockList) {
+    private void checkIpBlock() {
+        List<IpBlockWhoIs> ipBlockWhoIsList = ipBlockWhoIsRepository.findAll();
+        for (IpBlockWhoIs block:ipBlockWhoIsList) {
             IPAddress subnetAddress = new IPAddressString(block.getIpBlock()).getAddress();
             IPAddress subnet = subnetAddress.toPrefixBlock();
-            IPAddress testAddress = new IPAddressString(ipAddress).getAddress();
+            IPAddress testAddress = new IPAddressString(optimBotService.getIpAddress()).getAddress();
             if (subnet.contains(testAddress)) {
                 providerCode = block.getProviderCode();
                 break;

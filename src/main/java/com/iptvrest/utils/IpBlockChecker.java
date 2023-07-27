@@ -11,36 +11,22 @@ import lombok.Getter;
 import java.util.List;
 
 @Getter
-public class IpBlockWhoIsChecker {
+public class IpBlockChecker {
 
-    private IpBlockWhoIsRepository ipBlockWhoIsRepository;
-    private IpBlockRepository ipBlockRepository;
+    private final List<IpBlock> ipBlockList;
     private final String ipAddress;
     private String providerCode;
 
-    public IpBlockWhoIsChecker(String ipAddress, String dbName) {
+    public IpBlockChecker(List<IpBlock> ipBlockList, String ipAddress) {
+        this.ipBlockList = ipBlockList;
         this.ipAddress = ipAddress;
         this.providerCode = "";
-        if (dbName.equals("ip_block")) {
-            checkIpBlock(ipBlockRepository.findAll());
-        } else checkIpBlockWhoIs(ipBlockWhoIsRepository.findAll());
+        checkIpBlock();
     }
 
 
-    private void checkIpBlock(List<IpBlock> ipBlockList) {
+    private void checkIpBlock() {
         for (IpBlock block:ipBlockList) {
-            IPAddress subnetAddress = new IPAddressString(block.getIpBlock()).getAddress();
-            IPAddress subnet = subnetAddress.toPrefixBlock();
-            IPAddress testAddress = new IPAddressString(ipAddress).getAddress();
-            if (subnet.contains(testAddress)) {
-                providerCode = block.getProviderCode();
-                break;
-            }
-        }
-    }
-
-    private void checkIpBlockWhoIs(List<IpBlockWhoIs> ipBlockList) {
-        for (IpBlockWhoIs block:ipBlockList) {
             IPAddress subnetAddress = new IPAddressString(block.getIpBlock()).getAddress();
             IPAddress subnet = subnetAddress.toPrefixBlock();
             IPAddress testAddress = new IPAddressString(ipAddress).getAddress();
