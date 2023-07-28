@@ -6,4 +6,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CodeWhoIsRepository extends JpaRepository<CodeWhoIs, String> {
+
+    CodeWhoIs findByProviderCode(String code);
+
+    void deleteByProviderCode(String code);
+
 }

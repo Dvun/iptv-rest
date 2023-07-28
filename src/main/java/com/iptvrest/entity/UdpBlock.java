@@ -6,10 +6,13 @@ import lombok.Data;
 
 @Entity
 @Data
-public class IpBlockWhoIs {
+public class UdpBlock {
 
     @Id
-    public String ipBlock;
     public String providerCode;
+    public String block;
+    public String blockBegin;
+    public String blockEnd;
+    public String ports;
 
 }

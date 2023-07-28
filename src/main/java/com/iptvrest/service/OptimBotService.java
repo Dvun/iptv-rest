@@ -2,8 +2,8 @@ package com.iptvrest.service;
 
 import com.iptvrest.entity.IpBlock;
 import com.iptvrest.entity.Provider;
+import com.iptvrest.repository.CodeWhoIsRepository;
 import com.iptvrest.repository.IpBlockRepository;
-import com.iptvrest.repository.IpBlockWhoIsRepository;
 import com.iptvrest.repository.ProviderRepository;
 import com.iptvrest.utils.IpBlockChecker;
 import com.iptvrest.utils.IpBlockWhoIsChecker;
@@ -12,6 +12,7 @@ import inet.ipaddr.AddressStringException;
 import inet.ipaddr.IPAddressString;
 import jakarta.transaction.Transactional;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -23,19 +24,19 @@ import java.util.List;
 public class OptimBotService {
 
     private final IpBlockRepository ipBlockRepository;
-    private final IpBlockWhoIsRepository ipBlockWhoIsRepository;
     private final ProviderRepository providerRepository;
+
+    @Autowired
+    private final IpBlockWhoIsChecker ipBlockWhoIsChecker;
     private String prwdrCode = "";
-    private String ipAddress = "";
-    public OptimBotService(IpBlockRepository ipBlockRepository, IpBlockWhoIsRepository ipBlockWhoIsRepository, ProviderRepository providerRepository) {
+    public OptimBotService(IpBlockRepository ipBlockRepository, ProviderRepository providerRepository, CodeWhoIsRepository codeWhoIsRepository) {
         this.ipBlockRepository = ipBlockRepository;
-        this.ipBlockWhoIsRepository = ipBlockWhoIsRepository;
         this.providerRepository = providerRepository;
+        this.ipBlockWhoIsChecker = new IpBlockWhoIsChecker();
     }
 
 
     public ResponseEntity<Object> checkIpAddress(String ip) {
-        ipAddress = ip;
         try {
             IPAddressString str = new IPAddressString(ip);
             boolean isIp = str.toAddress().isIPAddress();
@@ -43,18 +44,18 @@ public class OptimBotService {
             if (isIp) {
                 List<IpBlock> ipBlockList = ipBlockRepository.findAll();
                 IpBlockChecker providerCode = new IpBlockChecker(ipBlockList, ip);
-                if (providerCode.getProviderCode().isEmpty()) {
+                if (!providerCode.getProviderCode().isEmpty()) {
                     prwdrCode = providerCode.getProviderCode();
                     return ResponseHandler.response("Override IpBlock in Database?", HttpStatus.OK, null);
                 } else {
-                    IpBlockWhoIsChecker providerCodeWhoIs = new IpBlockWhoIsChecker();
+                    ipBlockWhoIsChecker.start(ip);
                 }
             }
 
         } catch (AddressStringException e) {
             return ResponseHandler.response("Bad IP address!", HttpStatus.BAD_REQUEST, null);
         }
-        return ResponseHandler.response("", HttpStatus.OK, null);
+        return ResponseHandler.response("UdpBlocks, Provider, IpBlocksWhoIs, CodeWhoIs is added to database", HttpStatus.OK, null);
     }
 
 
